@@ -7,6 +7,8 @@ import otpStore from "../utils/otpStore.js";
 import { generateOtp } from "../utils/generateOtp.js";
 import { registerSchema } from "../validators/authSchema.js";
 import { sendOtpEmail } from "../utils/mailer.js";
+import { authenticateToken } from "../middleware/auth.js";
+
 
 const router = express.Router();
 
@@ -157,15 +159,27 @@ router.post("/login", async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    res.json({
-      message: "Login successful",
-      token,
+    res.cookie( "accessToken", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000
     });
+
+    res.json({
+      message: "login successful"
+    })
 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+router.get("/me", authenticateToken, (req, res) => {
+  res.json({
+    userId: req.user.userId
+  });
 });
 
 
