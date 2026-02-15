@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
-import API from '../api/axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export default function LoginPage({ onSwitchToRegister }) {
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,29 +20,20 @@ export default function LoginPage({ onSwitchToRegister }) {
     setError('');
     setSuccess('');
 
-    try {
-      const res = await API.post("/auth/login", { 
-        email, 
-        password 
-      });
-      console.log('Login successful:', res.data);
+    const result = await login(email, password);
+    
+    if (result.success) {
       setSuccess('Login successful! Redirecting...');
       
-      // Store token or user data if needed
-      // localStorage.setItem('token', res.data.token);
-      
-      // Redirect to dashboard or home page after 1 second
+      // Redirect to home/dashboard after successful login
       setTimeout(() => {
-        // window.location.href = '/dashboard';
-        console.log('Redirecting to dashboard...');
+        navigate('/');
       }, 1000);
-      
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password');
-      console.error(err.response?.data || err.message);
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error);
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -162,7 +157,7 @@ export default function LoginPage({ onSwitchToRegister }) {
         <p className="text-center mt-6 text-gray-600">
           Don't have an account?{' '}
           <button
-            onClick={onSwitchToRegister}
+            onClick={() => navigate("/register")}
             className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
             Sign up

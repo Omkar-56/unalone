@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Check, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
 
-export default function RegisterPage({ onSwitchToLogin }) {
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const { register: registerUser } = useAuth();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -13,7 +18,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   
   // Email verification states
-  const [verificationStep, setVerificationStep] = useState('form'); // 'form', 'otp', 'verified'
+  const [verificationStep, setVerificationStep] = useState('form');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -45,9 +50,8 @@ export default function RegisterPage({ onSwitchToLogin }) {
       setOtpSent(true);
       setVerificationStep('otp');
       setSuccess('OTP sent to your email!');
-      setTimer(60); // Start 60 second timer
+      setTimer(60);
       
-      // Countdown timer
       const interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
@@ -60,7 +64,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
       
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP');
-      console.error(err.response?.data || err.message);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +91,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
       
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP');
-      console.error(err.response?.data || err.message);
     } finally {
       setIsLoading(false);
     }
@@ -111,22 +113,20 @@ export default function RegisterPage({ onSwitchToLogin }) {
     setIsLoading(true);
     setError('');
     
-    try {
-      const res = await API.post("/auth/register", formData);
-      console.log("Registered:", res.data);
-      setSuccess('Account created successfully!');
+    const result = await registerUser(formData);
+    
+    if (result.success) {
+      setSuccess('Account created successfully! Redirecting...');
       
-      // Redirect to login after 2 seconds
+      // Redirect to home/dashboard after successful registration
       setTimeout(() => {
-        onSwitchToLogin();
+        navigate('/');
       }, 2000);
-      
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
-      console.error(err.response?.data || err.message);
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error);
     }
+    
+    setIsLoading(false);
   };
 
   // Password strength indicator
@@ -296,7 +296,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
                   )}
                 </button>
               </div>
-              {/* Password Strength Indicator */}
               {formData.password && (
                 <div className="mt-2">
                   <div className="flex items-center gap-2 mb-1">
@@ -362,7 +361,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
         <p className="text-center mt-6 text-gray-600">
           Already have an account?{' '}
           <button
-            onClick={onSwitchToLogin}
+            onClick={() => navigate('/login')}
             className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
             Sign in
