@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 import pool from "../db/index.js";
 import otpStore from "../utils/otpStore.js";
 import { generateOtp } from "../utils/generateOtp.js";
@@ -22,7 +23,7 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    const { name, email, phone, password } = parsed.data;
+    const { name, email, password } = parsed.data;
     const otpData = otpStore.get(email);
 
     if (!otpData?.verified) {
@@ -30,8 +31,8 @@ router.post("/register", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      "SELECT id FROM users WHERE email=$1 OR phone=$2",
-      [email || null, phone]
+      "SELECT id FROM users WHERE email=$1",
+      [email]
     );
 
     if (rows.length) {
@@ -43,18 +44,54 @@ router.post("/register", async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, phone, password_hash, verification_status)
-       VALUES ($1,$2,$3,$4,'email_verified')
-       RETURNING id,name,email,phone`,
-      [name, email || null, phone, password_hash]
+      `INSERT INTO users (name, email, password_hash, verification_status)
+       VALUES ($1, $2, $3, 'email_verified')
+       RETURNING id,name,email`,
+      [name, email, password_hash]
     );
 
-    otpStore.delete(phone);
+    const user = result.rows[0];
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: result.rows[0],
+    otpStore.delete(email);
+
+     // -------- Create JWT --------
+    const accessToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = uuidv4();
+
+    await pool.query(
+      `
+      INSERT INTO refresh_tokens (id, user_id, expires_at)
+      VALUES ($1, $2, NOW() + INTERVAL '7 days')
+      `,
+      [refreshToken, user.id]
+    )
+
+    res.cookie( "accessToken", accessToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000
     });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      message: "User register successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -153,22 +190,42 @@ router.post("/login", async (req, res) => {
     }
 
     // -------- Create JWT --------
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
 
-    res.cookie( "accessToken", token, {
+    const refreshToken = uuidv4();
+
+    await pool.query(
+      `
+      INSERT INTO refresh_tokens (id, user_id, expires_at)
+      VALUES ($1, $2, NOW() + INTERVAL '7 days')
+      `,
+      [refreshToken, user.id]
+    )
+
+    res.cookie( "accessToken", accessToken, {
       httpOnly: true,
-      secure: false,
       sameSite: "lax",
       maxAge: 15 * 60 * 1000
     });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
-      message: "login successful"
-    })
+      message: "login successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
 
   } catch (err) {
     console.error(err);
@@ -176,11 +233,82 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/me", authenticateToken, (req, res) => {
-  res.json({
-    userId: req.user.userId
+router.post("/refresh", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ error: "No refresh token" });
+  }
+
+  const result = await pool.query(
+    "SELECT * FROM refresh_tokens WHERE id = $1",
+    [refreshToken]
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(403).json({ error: "Invalid refresh token" });
+  }
+
+  const tokenData = result.rows[0];
+
+  if (new Date(tokenData.expires_at) < new Date()) {
+    return res.status(403).json({ error: "Refresh token expired" });
+  }
+
+  const newAccessToken = jwt.sign(
+    { userId: tokenData.user_id },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  res.cookie("accessToken", newAccessToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 15 * 60 * 1000,
   });
+
+  res.json({ message: "Token refreshed" });
 });
+
+router.post("/logout", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  await pool.query(
+    "DELETE FROM refresh_tokens WHERE id = $1",
+    [refreshToken]
+  );
+
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.json({ message: "Logged out" });
+});
+
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.cookies.accessToken;
+
+    if (!token) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await pool.query(
+      "SELECT id, name, email FROM users WHERE id = $1",
+      [decoded.userId]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ user: user.rows[0] });
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
+
 
 
 export default router;
