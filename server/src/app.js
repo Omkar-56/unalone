@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import pool from "./db/index.js";
 import authRoutes from "./routes/auth.js";
 import cookieParser from "cookie-parser";
+import planRoutes from "./routes/plans.routes.js"
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/plans", planRoutes)
 
 app.get("/", (req, res) => {
   res.send("API running...");
