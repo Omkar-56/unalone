@@ -3,9 +3,10 @@ import {
   Search, X, Navigation, MapPin, Clock, Users,
   Plus, ChevronRight, Shield, SlidersHorizontal,
   Coffee, Trees, BookOpen, Music, Utensils, Dumbbell,
-  Loader2, AlertCircle, Map
+  Loader2, AlertCircle, Map, Type, AlignLeft, Calendar
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
+import { useAuth } from '../context/AuthContext'; // ← Add this import
 import API from '../api/axios';
 
 // ─── Config ───────────────────────────────────────────────────
@@ -27,6 +28,15 @@ const FILTERS = [
   { id: 'soon',  label: 'Starting Soon' },
 ];
 
+const CATEGORIES = [
+  { id: 'coffee', label: 'Coffee', icon: Coffee },
+  { id: 'food', label: 'Food', icon: Utensils },
+  { id: 'park', label: 'Outdoor', icon: Trees },
+  { id: 'fitness', label: 'Fitness', icon: Dumbbell },
+  { id: 'book', label: 'Books', icon: BookOpen },
+  { id: 'music', label: 'Music', icon: Music },
+];
+
 // ─── Helpers ───────────────────────────────────────────────────
 const formatRelativeTime = (iso) => {
   const diff = new Date(iso) - Date.now();
@@ -40,7 +50,7 @@ const formatRelativeTime = (iso) => {
 const spotsLeft = (p) => p.maxParticipants - p.participants;
 
 // ─── PlanCard ──────────────────────────────────────────────────
-function PlanCard({ plan, selected, onClick }) {
+function PlanCard({ plan, selected, onClick, isOwnPlan }) {
   const Icon = CATEGORY_ICONS[plan.category] || MapPin;
   const free = spotsLeft(plan);
 
@@ -57,7 +67,14 @@ function PlanCard({ plan, selected, onClick }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-0.5">
-            <span className="font-semibold text-gray-900 text-sm leading-tight">{plan.title}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-900 text-sm leading-tight">{plan.title}</span>
+              {isOwnPlan && (
+                <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                  Your Plan
+                </span>
+              )}
+            </div>
             <span className="text-xs text-gray-400 flex-shrink-0">{plan.distance} km</span>
           </div>
           <p className="text-xs text-gray-400 mb-2">{plan.location.placeName}</p>
@@ -78,7 +95,7 @@ function PlanCard({ plan, selected, onClick }) {
 }
 
 // ─── PlanDetailSheet ───────────────────────────────────────────
-function PlanDetailSheet({ plan, onClose, onJoin }) {
+function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan }) {
   if (!plan) return null;
   const Icon = CATEGORY_ICONS[plan.category] || MapPin;
   const free = spotsLeft(plan);
@@ -119,6 +136,11 @@ function PlanDetailSheet({ plan, onClose, onJoin }) {
                 <span className="text-xs font-medium text-blue-700">Verified</span>
               </div>
             )}
+            {isOwnPlan && (
+              <div className="ml-auto px-2 py-0.5 bg-green-50 rounded-full">
+                <span className="text-xs font-medium text-green-700">Your Plan</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -153,31 +175,40 @@ function PlanDetailSheet({ plan, onClose, onJoin }) {
               />
             </div>
           </div>
-          <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
-            <AlertCircle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-800 leading-relaxed">
-              This meetup is in a <strong>public place</strong>. Chat is unlocked only after the creator accepts your request.
-            </p>
-          </div>
+          {!isOwnPlan && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <AlertCircle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-800 leading-relaxed">
+                This meetup is in a <strong>public place</strong>. Chat is unlocked only after the creator accepts your request.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="px-6 pb-6 flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
-            Cancel
+            Close
           </button>
-          <button onClick={() => onJoin(plan.id)} disabled={free === 0}
-            className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-            {free === 0 ? 'Plan Full' : 'Request to Join'}
-          </button>
+          {isOwnPlan ? (
+            <button
+              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+              Manage Plan
+            </button>
+          ) : (
+            <button onClick={() => onJoin(plan.id)} disabled={free === 0}
+              className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              {free === 0 ? 'Plan Full' : 'Request to Join'}
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── CreatePlanModal ───────────────────────────────────────────
+// ─── CreatePlanModal (Map Click) ───────────────────────────────
 function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
   const [formData, setFormData] = useState({
     title: '',
@@ -188,9 +219,8 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
   });
 
   useEffect(() => {
-    // Set default datetime to 1 hour from now
     const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
-    const formatted = oneHourLater.toISOString().slice(0, 16); // Format for datetime-local
+    const formatted = oneHourLater.toISOString().slice(0, 16);
     setFormData(prev => ({ ...prev, datetime: formatted }));
   }, []);
 
@@ -199,25 +229,14 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
     onSubmit({ ...formData, location });
   };
 
-  const categories = [
-    { id: 'coffee', label: 'Coffee', icon: Coffee },
-    { id: 'food', label: 'Food', icon: Utensils },
-    { id: 'park', label: 'Outdoor', icon: Trees },
-    { id: 'fitness', label: 'Fitness', icon: Dumbbell },
-    { id: 'book', label: 'Books', icon: BookOpen },
-    { id: 'music', label: 'Music', icon: Music },
-  ];
-
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white w-full sm:max-w-lg sm:mx-4 sm:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        {/* Handle */}
         <div className="sm:hidden flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
         </div>
 
-        {/* Header */}
         <div className="px-6 pt-4 pb-5 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -235,13 +254,9 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Plan Title
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Plan Title</label>
             <input
               type="text"
               required
@@ -254,13 +269,10 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
             <p className="text-xs text-gray-400 mt-1">{formData.title.length}/50</p>
           </div>
 
-          {/* Category */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Category
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
             <div className="grid grid-cols-3 gap-2">
-              {categories.map(cat => {
+              {CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
                   <button
@@ -268,26 +280,19 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.id })}
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      formData.category === cat.id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                      formData.category === cat.id ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
                     <Icon size={20} className={formData.category === cat.id ? 'text-blue-600' : 'text-gray-500'} />
-                    <span className={`text-xs font-medium ${formData.category === cat.id ? 'text-blue-900' : 'text-gray-700'}`}>
-                      {cat.label}
-                    </span>
+                    <span className={`text-xs font-medium ${formData.category === cat.id ? 'text-blue-900' : 'text-gray-700'}`}>{cat.label}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Date & Time */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              When
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">When</label>
             <input
               type="datetime-local"
               required
@@ -297,11 +302,8 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
             />
           </div>
 
-          {/* Max Participants */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Max Participants
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Max Participants</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -309,7 +311,7 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
                 max="20"
                 value={formData.maxParticipants}
                 onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
-                className="flex-1"
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                 <span className="text-lg font-bold text-blue-600">{formData.maxParticipants}</span>
@@ -317,11 +319,8 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
             </div>
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Description (Optional)
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
             <textarea
               maxLength={200}
               rows={3}
@@ -333,21 +332,17 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
             <p className="text-xs text-gray-400 mt-1">{formData.description.length}/200</p>
           </div>
 
-          {/* Location Preview */}
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
             <div className="flex items-start gap-2">
               <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-700">Location</p>
                 <p className="text-xs text-gray-900 font-medium truncate">{location.placeName}</p>
-                <p className="text-xs text-gray-400 truncate">
-                  {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                </p>
+                <p className="text-xs text-gray-400 truncate">{location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
               </div>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -377,6 +372,312 @@ function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
   );
 }
 
+// ─── CreatePlanForm (Button Click) ─────────────────────────────
+function CreatePlanForm({ onClose, onSubmit, isSubmitting }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'coffee',
+    datetime: '',
+    maxParticipants: 4,
+    location: null,
+  });
+
+  const [locationSearch, setLocationSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [step, setStep] = useState(1);
+
+  useEffect(() => {
+    const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
+    const formatted = oneHourLater.toISOString().slice(0, 16);
+    setFormData(prev => ({ ...prev, datetime: formatted }));
+  }, []);
+
+  const handleLocationSearch = async () => {
+    if (!locationSearch.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationSearch)}&limit=5`
+      );
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (err) {
+      console.error('Search error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectLocation = (result) => {
+    setFormData({
+      ...formData,
+      location: {
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon),
+        placeName: result.display_name.split(',')[0],
+        fullAddress: result.display_name,
+      },
+    });
+    setLocationSearch('');
+    setSearchResults([]);
+    setStep(2);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Create a Plan</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {step === 1 ? 'Choose a location' : 'Add plan details'}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <X size={20} className="text-gray-500" />
+          </button>
+        </div>
+
+        <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className={`flex-1 h-1.5 rounded-full ${step >= 1 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-1.5 rounded-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          {step === 1 && (
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Where will this happen?
+                </label>
+                <div className="relative">
+                  <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 gap-2">
+                    <Search size={18} className="text-gray-400" />
+                    <input
+                      type="text"
+                      value={locationSearch}
+                      onChange={(e) => setLocationSearch(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleLocationSearch())}
+                      placeholder="Search for a place or address..."
+                      className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400"
+                    />
+                    {isSearching && <Loader2 size={16} className="text-blue-500 animate-spin" />}
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-xl max-h-80 overflow-y-auto z-10">
+                      {searchResults.map((result) => (
+                        <button
+                          key={result.place_id}
+                          type="button"
+                          onClick={() => handleSelectLocation(result)}
+                          className="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 text-left"
+                        >
+                          <MapPin size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {result.display_name.split(',')[0]}
+                            </p>
+                            <p className="text-xs text-gray-500 line-clamp-2">{result.display_name}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {formData.location && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <MapPin size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{formData.location.placeName}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2 mt-1">{formData.location.fullAddress}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, location: null })}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => formData.location && setStep(2)}
+                  disabled={!formData.location}
+                  className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <Type size={16} />
+                  Plan Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={50}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g., Morning Coffee Chat"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
+                />
+                <p className="text-xs text-gray-400 mt-1">{formData.title.length}/50</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {CATEGORIES.map((cat) => {
+                    const Icon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, category: cat.id })}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                          formData.category === cat.id
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <Icon
+                          size={24}
+                          className={formData.category === cat.id ? 'text-blue-600' : 'text-gray-500'}
+                        />
+                        <span
+                          className={`text-sm font-medium ${
+                            formData.category === cat.id ? 'text-blue-900' : 'text-gray-700'
+                          }`}
+                        >
+                          {cat.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <Calendar size={16} />
+                  When
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={formData.datetime}
+                  onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center justify-between text-sm font-semibold text-gray-700 mb-3">
+                  <span className="flex items-center gap-2">
+                    <Users size={16} />
+                    Max Participants
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600">{formData.maxParticipants}</span>
+                </label>
+                <input
+                  type="range"
+                  min="2"
+                  max="20"
+                  value={formData.maxParticipants}
+                  onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                  <span>2</span>
+                  <span>20</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <AlignLeft size={16} />
+                  Description (Optional)
+                </label>
+                <textarea
+                  maxLength={200}
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Add any details about the meetup..."
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 resize-none"
+                />
+                <p className="text-xs text-gray-400 mt-1">{formData.description.length}/200</p>
+              </div>
+            </div>
+          )}
+        </form>
+
+        <div className="px-6 py-4 border-t border-gray-200 flex gap-3 flex-shrink-0">
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Back
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          {step === 2 && (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Plan'
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main ──────────────────────────────────────────────────────
 export default function ExplorePage() {
   const mapContainerRef = useRef(null);
@@ -385,6 +686,7 @@ export default function ExplorePage() {
   const userMarkerRef   = useRef(null);
 
   const { userLocation, isLoadingLocation, locationError, requestLocation, setManualLocation } = useLocation();
+  const { user } = useAuth(); // ← Get current user
 
   const [plans,         setPlans]         = useState([]);
   const [selectedPlan,  setSelectedPlan]  = useState(null);
@@ -397,10 +699,17 @@ export default function ExplorePage() {
   const [showList,      setShowList]      = useState(false);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
   
-  // Create plan modal state
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Create plan modal states
+  const [showCreateModal, setShowCreateModal] = useState(false); // Map click
+  const [showCreateForm, setShowCreateForm] = useState(false);   // Button click
   const [createLocation,  setCreateLocation]  = useState(null);
   const [isCreatingPlan,  setIsCreatingPlan]  = useState(false);
+
+  // Helper function to check if plan belongs to current user
+  const isOwnPlan = (plan) => {
+    if (!user || !plan?.creator?.id) return false;
+    return plan.creator.id === user.id;
+  };
 
   // Fetch nearby plans from API
   const fetchNearbyPlans = async () => {
@@ -412,7 +721,7 @@ export default function ExplorePage() {
         params: {
           lat: userLocation.lat,
           lng: userLocation.lng,
-          radius: 10000, // 10km radius
+          radius: 10000,
           filter: activeFilter,
         },
       });
@@ -420,7 +729,6 @@ export default function ExplorePage() {
       setPlans(response.data.plans || []);
     } catch (error) {
       console.error('Error fetching plans:', error);
-      // Show empty state if API fails
       setPlans([]);
     } finally {
       setIsLoadingPlans(false);
@@ -467,7 +775,7 @@ export default function ExplorePage() {
       antialias: true,
       config: {
         basemap: {
-          show3dObjects: false,           // ← This disables 3D buildings
+          show3dObjects: false,
           showPointOfInterestLabels: true,
           showPlaceLabels: true,
           showRoadLabels: true,
@@ -481,10 +789,8 @@ export default function ExplorePage() {
     
     // Handle map clicks for creating plans
     map.on('click', async (e) => {
-      // Don't open modal if clicking on a plan marker
       if (e.originalEvent.target.closest('.plan-marker-bubble')) return;
       
-      // Get place name from coordinates using Nominatim
       let placeName = 'Selected Location';
       try {
         const response = await fetch(
@@ -492,11 +798,10 @@ export default function ExplorePage() {
         );
         const data = await response.json();
         if (data.display_name) {
-          // Get first part of address (usually the venue or street)
           placeName = data.display_name.split(',')[0];
         }
       } catch (error) {
-        console.log('Could not fetch place name:', error);
+        console.log('Could not fetch place name');
       }
       
       setCreateLocation({
@@ -506,12 +811,13 @@ export default function ExplorePage() {
       });
       setShowCreateModal(true);
     });
-    
+
     map.on('load', () => {
       mapRef.current = map;
       setMapLoaded(true);
       if (userLocation) addUserMarker(userLocation, map);
     });
+
   }, [userLocation]);
 
   const addUserMarker = (loc, map) => {
@@ -532,15 +838,13 @@ export default function ExplorePage() {
       .addTo(map);
   };
 
-  // Fly to user location when it changes
   useEffect(() => {
     if (!mapRef.current || !userLocation) return;
     mapRef.current.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 17, speed: 1.4, essential: true });
     addUserMarker(userLocation, mapRef.current);
-    fetchNearbyPlans(); // Fetch real plans from API
+    fetchNearbyPlans();
   }, [userLocation, mapLoaded]);
 
-  // Refetch plans when filter changes
   useEffect(() => {
     if (userLocation) {
       fetchNearbyPlans();
@@ -601,7 +905,6 @@ export default function ExplorePage() {
     });
   }, [selectedPlan, plans]);
 
-  // Nominatim search
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
@@ -619,11 +922,6 @@ export default function ExplorePage() {
     setSearchResults([]);
   };
 
-  const handleJoin = async (planId) => {
-    try { await API.post(`/plans/${planId}/join`); } catch { /* handle */ }
-    setSelectedPlan(null);
-  };
-
   const handleCreatePlan = async (planData) => {
     setIsCreatingPlan(true);
     try {
@@ -638,17 +936,14 @@ export default function ExplorePage() {
         maxParticipants: planData.maxParticipants,
       });
 
-      // Add the new plan to the list
       setPlans(prev => [response.data.plan, ...prev]);
       
-      // Close modal and show success
       setShowCreateModal(false);
+      setShowCreateForm(false);
       setCreateLocation(null);
       
-      // Optionally, select the new plan
       setSelectedPlan(response.data.plan);
       
-      // Fly to the new plan location
       if (mapRef.current) {
         mapRef.current.flyTo({
           center: [planData.location.lng, planData.location.lat],
@@ -664,6 +959,17 @@ export default function ExplorePage() {
     }
   };
 
+  const handleJoin = async (planId) => {
+    try { 
+      await API.post(`/plans/${planId}/join`); 
+      setSelectedPlan(null);
+      fetchNearbyPlans();
+    } catch (error) {
+      console.error('Error joining plan:', error);
+      alert(error.response?.data?.message || 'Failed to join plan');
+    }
+  };
+
   const filteredPlans = plans.filter(p => {
     const h = (new Date(p.datetime) - Date.now()) / 3600000;
     if (activeFilter === 'today') return h < 24;
@@ -671,11 +977,8 @@ export default function ExplorePage() {
     return true;
   });
 
-  // ── Render ─────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
-
-      {/* Top Bar */}
       <header className="flex-shrink-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 z-30 shadow-sm">
         <div className="flex items-center gap-2.5 mr-1">
           <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
@@ -684,7 +987,6 @@ export default function ExplorePage() {
           <span className="font-bold text-gray-900 hidden sm:block tracking-tight">Unalone</span>
         </div>
 
-        {/* Search */}
         <div className="flex-1 relative max-w-sm">
           <div className="flex items-center bg-gray-100 rounded-xl px-3 py-2 gap-2">
             <Search size={14} className="text-gray-400 flex-shrink-0" />
@@ -716,28 +1018,25 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
-          {/* Mobile list toggle */}
           <button onClick={() => setShowList(v => !v)}
             className="sm:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
             <SlidersHorizontal size={14} />List
           </button>
 
-          {/* Desktop sidebar toggle */}
           <button onClick={() => setSidebarOpen(v => !v)}
             className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
             <SlidersHorizontal size={14} />{sidebarOpen ? 'Hide list' : 'Show list'}
           </button>
 
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors">
+          <button 
+            onClick={() => setShowCreateForm(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors">
             <Plus size={15} /><span className="hidden sm:inline">New Plan</span>
           </button>
         </div>
       </header>
 
-      {/* Body */}
       <div className="flex flex-1 overflow-hidden relative">
-
-        {/* Sidebar (desktop) */}
         <aside className={`hidden sm:flex flex-col bg-white border-r border-gray-200 flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden
           ${sidebarOpen ? 'w-80 opacity-100' : 'w-0 opacity-0'}`}>
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 flex-shrink-0">
@@ -782,21 +1081,24 @@ export default function ExplorePage() {
               </div>
             ) : (
               filteredPlans.map(plan => (
-                <PlanCard key={plan.id} plan={plan} selected={selectedPlan?.id === plan.id}
+                <PlanCard 
+                  key={plan.id} 
+                  plan={plan} 
+                  selected={selectedPlan?.id === plan.id}
+                  isOwnPlan={isOwnPlan(plan)}
                   onClick={() => {
                     setSelectedPlan(plan);
                     mapRef.current?.flyTo({ center: [plan.location.lng, plan.location.lat], zoom: 17, speed: 1.2 });
-                  }} />
+                  }} 
+                />
               ))
             )}
           </div>
         </aside>
 
-        {/* Map */}
         <div className="flex-1 relative overflow-hidden">
           <div ref={mapContainerRef} className="w-full h-full" />
 
-          {/* Location enable nudge */}
           {!userLocation && !isLoadingLocation && mapLoaded && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-full px-4 max-w-sm">
               <div className="bg-white rounded-2xl shadow-xl border border-gray-200 px-5 py-4 flex items-center gap-3">
@@ -819,7 +1121,6 @@ export default function ExplorePage() {
             </div>
           )}
 
-          {/* Recenter */}
           {userLocation && mapLoaded && (
             <button
               onClick={() => mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 17, speed: 1.2 })}
@@ -831,7 +1132,6 @@ export default function ExplorePage() {
           )}
         </div>
 
-        {/* Mobile list overlay */}
         {showList && (
           <div className="sm:hidden absolute inset-0 z-40 flex flex-col bg-white">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
@@ -850,18 +1150,26 @@ export default function ExplorePage() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {filteredPlans.map(plan => (
-                <PlanCard key={plan.id} plan={plan} selected={selectedPlan?.id === plan.id}
-                  onClick={() => { setSelectedPlan(plan); setShowList(false); }} />
+                <PlanCard 
+                  key={plan.id} 
+                  plan={plan} 
+                  selected={selectedPlan?.id === plan.id}
+                  isOwnPlan={isOwnPlan(plan)}
+                  onClick={() => { setSelectedPlan(plan); setShowList(false); }} 
+                />
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Detail sheet */}
-      <PlanDetailSheet plan={selectedPlan} onClose={() => setSelectedPlan(null)} onJoin={handleJoin} />
+      <PlanDetailSheet 
+        plan={selectedPlan} 
+        onClose={() => setSelectedPlan(null)} 
+        onJoin={handleJoin}
+        isOwnPlan={selectedPlan ? isOwnPlan(selectedPlan) : false}
+      />
 
-      {/* Create plan modal */}
       {showCreateModal && createLocation && (
         <CreatePlanModal
           location={createLocation}
@@ -869,6 +1177,14 @@ export default function ExplorePage() {
             setShowCreateModal(false);
             setCreateLocation(null);
           }}
+          onSubmit={handleCreatePlan}
+          isSubmitting={isCreatingPlan}
+        />
+      )}
+
+      {showCreateForm && (
+        <CreatePlanForm
+          onClose={() => setShowCreateForm(false)}
           onSubmit={handleCreatePlan}
           isSubmitting={isCreatingPlan}
         />

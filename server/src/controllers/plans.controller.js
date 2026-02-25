@@ -19,7 +19,7 @@ export const getNearbyPlans = async (req, res) => {
       filter
     });
 
-    res.json(plans);
+    res.json({plans: plans});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
