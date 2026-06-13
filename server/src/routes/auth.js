@@ -73,7 +73,8 @@ router.post("/register", async (req, res) => {
 
     res.cookie( "accessToken", accessToken, {
       httpOnly: true,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 15 * 60 * 1000
     });
 
@@ -100,22 +101,30 @@ router.post("/register", async (req, res) => {
 
 
 router.post("/send-otp", async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const otp = generateOtp();
+
+    otpStore.set(email, {
+      otp,
+      expires: Date.now() + 5 * 60 * 1000,
+    });
+
+    await sendOtpEmail(email, otp);
+
+    res.json({ message: "OTP sent" });
+
+  } catch (err) {
+    console.error("OTP Error:", err);
+    res.status(500).json({
+      error: "Failed to send OTP"
+    });
   }
-
-  const otp = generateOtp();
-
-  otpStore.set(email, {
-    otp,
-    expires: Date.now() + 5 * 60 * 1000,
-  });
-
-  await sendOtpEmail(email, otp)
-
-  res.json({ message: "OTP sent" });
 });
 
 router.post("/verify-otp", (req, res) => {
