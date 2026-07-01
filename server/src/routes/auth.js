@@ -215,15 +215,19 @@ router.post("/login", async (req, res) => {
       [refreshToken, user.id]
     )
 
-    res.cookie( "accessToken", accessToken, {
+    const cookieOptions = {
       httpOnly: true,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none"
+    };
+
+    res.cookie( "accessToken", accessToken, {
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000
     });
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "lax",
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -272,7 +276,8 @@ router.post("/refresh", async (req, res) => {
 
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 15 * 60 * 1000,
   });
 
