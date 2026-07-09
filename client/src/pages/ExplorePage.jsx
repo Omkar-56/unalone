@@ -698,7 +698,7 @@ export default function ExplorePage() {
   const [sidebarOpen,   setSidebarOpen]   = useState(true);
   const [showList,      setShowList]      = useState(false);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
-  
+
   // Create plan modal states
   const [showCreateModal, setShowCreateModal] = useState(false); // Map click
   const [showCreateForm, setShowCreateForm] = useState(false);   // Button click
@@ -725,7 +725,7 @@ export default function ExplorePage() {
           filter: activeFilter,
         },
       });
-      
+
       setPlans(response.data.plans || []);
     } catch (error) {
       console.error('Error fetching plans:', error);
@@ -786,11 +786,11 @@ export default function ExplorePage() {
     });
 
     map.addControl(new window.mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
-    
+
     // Handle map clicks for creating plans
     map.on('click', async (e) => {
       if (e.originalEvent.target.closest('.plan-marker-bubble')) return;
-      
+
       let placeName = 'Selected Location';
       try {
         const response = await fetch(
@@ -803,7 +803,7 @@ export default function ExplorePage() {
       } catch (error) {
         console.log('Could not fetch place name');
       }
-      
+
       setCreateLocation({
         lat: e.lngLat.lat,
         lng: e.lngLat.lng,
@@ -937,13 +937,13 @@ export default function ExplorePage() {
       });
 
       setPlans(prev => [response.data.plan, ...prev]);
-      
+
       setShowCreateModal(false);
       setShowCreateForm(false);
       setCreateLocation(null);
-      
+
       setSelectedPlan(response.data.plan);
-      
+
       if (mapRef.current) {
         mapRef.current.flyTo({
           center: [planData.location.lng, planData.location.lat],
@@ -960,8 +960,8 @@ export default function ExplorePage() {
   };
 
   const handleJoin = async (planId) => {
-    try { 
-      await API.post(`/plans/${planId}/join`); 
+    try {
+      await API.post(`/plans/${planId}/join`);
       setSelectedPlan(null);
       fetchNearbyPlans();
     } catch (error) {
@@ -1028,7 +1028,7 @@ export default function ExplorePage() {
             <SlidersHorizontal size={14} />{sidebarOpen ? 'Hide list' : 'Show list'}
           </button>
 
-          <button 
+          <button
             onClick={() => setShowCreateForm(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors">
             <Plus size={15} /><span className="hidden sm:inline">New Plan</span>
@@ -1081,15 +1081,15 @@ export default function ExplorePage() {
               </div>
             ) : (
               filteredPlans.map(plan => (
-                <PlanCard 
-                  key={plan.id} 
-                  plan={plan} 
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
                   selected={selectedPlan?.id === plan.id}
                   isOwnPlan={isOwnPlan(plan)}
                   onClick={() => {
                     setSelectedPlan(plan);
                     mapRef.current?.flyTo({ center: [plan.location.lng, plan.location.lat], zoom: 17, speed: 1.2 });
-                  }} 
+                  }}
                 />
               ))
             )}
@@ -1150,12 +1150,12 @@ export default function ExplorePage() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {filteredPlans.map(plan => (
-                <PlanCard 
-                  key={plan.id} 
-                  plan={plan} 
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
                   selected={selectedPlan?.id === plan.id}
                   isOwnPlan={isOwnPlan(plan)}
-                  onClick={() => { setSelectedPlan(plan); setShowList(false); }} 
+                  onClick={() => { setSelectedPlan(plan); setShowList(false); console.log(plan.creator) }}
                 />
               ))}
             </div>
@@ -1163,9 +1163,9 @@ export default function ExplorePage() {
         )}
       </div>
 
-      <PlanDetailSheet 
-        plan={selectedPlan} 
-        onClose={() => setSelectedPlan(null)} 
+      <PlanDetailSheet
+        plan={selectedPlan}
+        onClose={() => setSelectedPlan(null)}
         onJoin={handleJoin}
         isOwnPlan={selectedPlan ? isOwnPlan(selectedPlan) : false}
       />
