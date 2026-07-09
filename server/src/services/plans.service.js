@@ -132,7 +132,7 @@ export const createPlan = async ({
 
   // ---- Get creator ----
   const userRes = await pool.query(
-    "SELECT name, verification_status FROM users WHERE id = $1",
+    "SELECT id, name, verification_status FROM users WHERE id = $1",
     [userId]
   );
 
@@ -153,6 +153,7 @@ export const createPlan = async ({
     maxParticipants: plan.max_people,
     distance: 0,
     creator: {
+      id: creator.id,
       name: creator.name,
       verified: creator.verification_status === "email_verified",
       initials: creator.name
