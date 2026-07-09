@@ -12,6 +12,7 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
   const query = `
     SELECT
       p.id,
+      p.user_id,
       p.title,
       p.description,
       p.category,
