@@ -707,7 +707,14 @@ export default function ExplorePage() {
 
   // Helper function to check if plan belongs to current user
   const isOwnPlan = (plan) => {
+    console.log("Current User:", user);
+    console.log("Plan:", plan);
+    console.log("Creator:", plan.creator);
+    console.log("Creator ID:", plan.creator?.id);
+    console.log("Creator_id:", plan.creator_id);
+
     if (!user || !plan?.creator?.id) return false;
+
     return plan.creator.id === user.id;
   };
 
@@ -1155,7 +1162,7 @@ export default function ExplorePage() {
                   plan={plan}
                   selected={selectedPlan?.id === plan.id}
                   isOwnPlan={isOwnPlan(plan)}
-                  onClick={() => { setSelectedPlan(plan); setShowList(false); console.log(plan.creator) }}
+                  onClick={() => { setSelectedPlan(plan); setShowList(false); }}
                 />
               ))}
             </div>
