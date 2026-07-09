@@ -56,6 +56,7 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
     maxParticipants: p.max_people,
     distance: Number(p.distance).toFixed(1),
     creator: {
+      id: p.user_id,
       name: p.creator_name,
       verified: p.verification_status === 'email_verified'? true : false,
       initials: p.creator_name
