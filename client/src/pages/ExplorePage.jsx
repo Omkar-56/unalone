@@ -11,6 +11,7 @@ import { spotsLeft } from '../utils/helpers';
 import PlanDetailSheet from '../components/PlanDetailSheet';
 import CreatePlanForm from '../components/CreatePlanForm';
 import CreatePlanModal from '../components/CreatePlanModal';
+import PlanCard from '../components/PlanCard';
 
 // ─── Config ───────────────────────────────────────────────────
 // const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
