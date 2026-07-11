@@ -1,6 +1,6 @@
 import { MapPin, Clock, AlertCircle, Shield, Users, X } from "lucide-react";
-import { CATEGORY_ICONS } from "../../utils/constants";
-import { formatRelativeTime, spotsLeft } from "../../utils/helpers";
+import { CATEGORY_ICONS } from "../utils/constants";
+import { formatRelativeTime, spotsLeft } from "../utils/helpers";
 
 export default function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan }) {
   if (!plan) return null;
