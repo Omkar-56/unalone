@@ -1,4 +1,4 @@
-import { MapPin, Clock, AlertCircle, Shield, Users, X } from "lucide-react";
+import { MapPin, AlertCircle, Shield, X } from "lucide-react";
 import { CATEGORY_ICONS } from "../utils/constants";
 import { formatRelativeTime, spotsLeft } from "../utils/helpers";
 
