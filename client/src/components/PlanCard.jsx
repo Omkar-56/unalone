@@ -1,7 +1,7 @@
 import { ChevronRight, Clock, Users } from "lucide-react";
 
-import { CATEGORY_ICONS } from "../../utils/constants";
-import { formatRelativeTime, spotsLeft } from "../../utils/helpers";
+import { CATEGORY_ICONS } from "../utils/constants";
+import { formatRelativeTime, spotsLeft } from "../utils/helpers";
 
 export default function PlanCard({
   plan,

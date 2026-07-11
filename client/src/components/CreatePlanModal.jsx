@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MapPin, X, Loader2 } from "lucide-react";
-import { CATEGORIES } from "../../utils/constants";
+import { CATEGORIES } from "../utils/constants";
 
 export default function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
   const [formData, setFormData] = useState({
