@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, X, Loader2, Search } from "lucide-react";
+import { MapPin, X, Loader2, Search, Type, Calendar, Users, AlignLeft } from "lucide-react";
 import { CATEGORIES } from "../utils/constants";
 
 
