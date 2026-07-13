@@ -8,6 +8,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("STMP verification failed:", err);
+  } else {
+    console.log("SMTP verified:", success);
+  }
+});
+
 export async function sendOtpEmail(email, otp) {
   await transporter.sendMail({
     from: `Unalone <${process.env.EMAIL_USER}>`,
