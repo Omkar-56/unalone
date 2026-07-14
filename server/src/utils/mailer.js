@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtpEmail(email, otp) {
   const { data, error } = await resend.emails.send({
-    from: `Unalone <${process.env.EMAIL_USER}>`,
+    from: `Unalone <onboarding@resend.dev>`,
     to: email,
     subject: "Your verification code",
     text: `Your OTP is ${otp}`,
