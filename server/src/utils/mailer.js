@@ -1,18 +1,22 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from "nodemailer";
 
 export async function sendOtpEmail(email, otp) {
-  const { data, error } = await resend.emails.send({
-    from: `Unalone <onboarding@resend.dev>`,
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_SERVER,
+    port: process.env.SMTP_PORT,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_LOGIN,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: `Unalone <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Your verification code",
     text: `Your OTP is ${otp}`,
-  });
+  };
 
-  if (error) {
-    console.error("Error sending email:", error);
-  } else {
-    console.log("Email sent:", data);
-  }
+  await transporter.sendMail(mailOptions);
 }
