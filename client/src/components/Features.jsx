@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Users, Zap, Shield, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, Users, Zap, Shield, MessageCircle, Trash } from 'lucide-react';
 
 export default function Features() {
   const features = [
@@ -34,9 +34,9 @@ export default function Features() {
       color: 'red',
     },
     {
-      icon: MessageCircle,
-      title: 'Real-Time Chat',
-      description: 'Chat with group members after requests are accepted with instant messaging.',
+      icon: Trash,
+      title: 'Delete Plans',
+      description: 'Change of plans? Remove plans that are no longer needed and create new ones.',
       color: 'cyan',
     },
   ];

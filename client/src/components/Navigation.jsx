@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, Map } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,18 +38,18 @@ export default function Navigation() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <a
-              href="#"
+            <Link
+              to="/login"
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Sign In
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/register"
               className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
             >
               Get Started
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -75,18 +76,18 @@ export default function Navigation() {
                 </a>
               ))}
               <div className="px-3 py-2 space-y-2">
-                <a
-                  href="#"
+                <Link
+                  to="/login"
                   className="block px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-center transition-colors"
                 >
                   Sign In
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/register"
                   className="block px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-center transition-colors"
                 >
                   Get Started
-                </a>
+                </Link>
               </div>
             </div>
           </div>

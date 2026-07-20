@@ -1,7 +1,9 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, MapPin, Zap } from 'lucide-react';
 
 export default function Hero() {
+  const navigate = useNavigate();
+
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-slate-50 to-white">
       <div className="max-w-7xl mx-auto">
@@ -24,7 +26,9 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button className="px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all hover:shadow-lg flex items-center justify-center gap-2 group">
+              <button
+                onClick={() => navigate('/register')}
+                className="px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all hover:shadow-lg flex items-center justify-center gap-2 group">
                 Start Exploring
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>

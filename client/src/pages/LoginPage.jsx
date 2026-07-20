@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,18 +21,18 @@ export default function LoginPage() {
     setSuccess('');
 
     const result = await login(email, password);
-    
+
     if (result.success) {
       setSuccess('Login successful! Redirecting...');
-      
+
       // Redirect to home/dashboard after successful login
       setTimeout(() => {
-        navigate('/');
+        navigate('/home');
       }, 1000);
     } else {
       setError(result.error);
     }
-    
+
     setIsLoading(false);
   };
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8 border border-gray-100">
-          
+
           {/* Success Message */}
           {success && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
@@ -136,7 +136,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-3.5 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 text-white font-semibold py-3.5 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
