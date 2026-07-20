@@ -4,7 +4,7 @@ import Features from '../components/Features';
 import HowItWorks from '../components/HowItWorks';
 // import Screenshots from '../components/Screenshots';
 // import CallToAction from '../components/CallToAction';
-// import Footer from '../components/Footer';
+import Footer from '../components/Footer';
 
 export default function LandingPage() {
   return (
@@ -31,7 +31,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      {/* <Footer />*/}
+      <Footer />
 
       {/* Global Styles */}
       <style jsx>{`
