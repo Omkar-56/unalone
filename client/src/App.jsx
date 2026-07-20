@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import ExplorePage from './pages/ExplorePage';
+import LandingPage from './pages/LandingPage';
+
 
 function App() {
   return (
@@ -16,9 +18,10 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <Routes>
               {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              
+
               {/* Protected Routes */}
               <Route
                 path="/"
@@ -28,7 +31,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
               <Route
                 path="/explore"
                 element={
@@ -37,7 +40,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
               {/* Redirect unknown routes to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
