@@ -31,7 +31,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer />*/}
 
       {/* Global Styles */}
       <style jsx>{`
