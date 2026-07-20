@@ -18,16 +18,16 @@ export default function LandingPage() {
         <Hero />
 
         {/* Features Section */}
-        <Features />
+        {/* <Features />*/}
 
         {/* How It Works Section */}
-        <HowItWorks />
+        {/* <HowItWorks />*/}
 
         {/* Screenshots/Demo Section */}
-        <Screenshots />
+        {/* <Screenshots />*/}
 
         {/* Call to Action & Social Proof */}
-        <CallToAction />
+        {/* <CallToAction />*/}
       </main>
 
       {/* Footer */}
