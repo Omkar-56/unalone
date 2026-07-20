@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, Mail, Linkedin, Github, Portfolio } from 'lucide-react';
+import { Map, Mail, Linkedin, Github, CircleUser } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -34,7 +34,7 @@ export default function Footer() {
   ];
 
   const socialLinks = [
-    { icon: Portfolio, label: 'Portfolio', href: 'https://omkar-pansare.vercel.app/' },
+    { icon: CircleUser, label: 'Portfolio', href: 'https://omkar-pansare.vercel.app/' },
     { icon: Linkedin, label: 'LinkedIn', href: 'https://www.linkedin.com/in/omkar-pansare-3b8a91292' },
     { icon: Github, label: 'GitHub', href: 'https://github.com/Omkar-56/' },
     { icon: Mail, label: 'Email', href: 'mailto:unalone.app@gmail.com' },
