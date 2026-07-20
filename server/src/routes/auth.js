@@ -1,15 +1,12 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import validator from "validator";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import pool from "../db/index.js";
-import otpStore from "../utils/otpStore.js";
-import { generateOtp } from "../utils/generateOtp.js";
+// import otpStore from "../utils/otpStore.js";
+// import { generateOtp } from "../utils/generateOtp.js";
 import { registerSchema } from "../validators/authSchema.js";
-import { sendOtpEmail } from "../utils/mailer.js";
-import { authenticateToken } from "../middleware/auth.js";
-
+// import { sendOtpEmail } from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -24,11 +21,11 @@ router.post("/register", async (req, res) => {
     }
 
     const { name, email, password } = parsed.data;
-    const otpData = otpStore.get(email);
+    // const otpData = otpStore.get(email);
 
-    if (!otpData?.verified) {
-      return res.status(400).json({ error: "Email not verified" });
-    }
+    // if (!otpData?.verified) {
+    //   return res.status(400).json({ error: "Email not verified" });
+    // }
 
     const { rows } = await pool.query(
       "SELECT id FROM users WHERE email=$1",
@@ -39,22 +36,22 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    console.log("OTP STORE:", otpStore);
+    // console.log("OTP STORE:", otpStore);
 
     const password_hash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, verification_status)
-       VALUES ($1, $2, $3, 'email_verified')
+      `INSERT INTO users (name, email, password_hash)
+       VALUES ($1, $2, $3)
        RETURNING id,name,email`,
       [name, email, password_hash]
     );
 
     const user = result.rows[0];
 
-    otpStore.delete(email);
+    // otpStore.delete(email);
 
-     // -------- Create JWT --------
+    // -------- Create JWT --------
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET,
@@ -80,7 +77,7 @@ router.post("/register", async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -100,59 +97,59 @@ router.post("/register", async (req, res) => {
 });
 
 
-router.post("/send-otp", async (req, res) => {
-  try {
-    const { email } = req.body;
+// router.post("/send-otp", async (req, res) => {
+//   try {
+//     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+//     if (!email) {
+//       return res.status(400).json({ error: "Email is required" });
+//     }
 
-    const otp = generateOtp();
+//     const otp = generateOtp();
 
-    otpStore.set(email, {
-      otp,
-      expires: Date.now() + 5 * 60 * 1000,
-    });
+//     otpStore.set(email, {
+//       otp,
+//       expires: Date.now() + 5 * 60 * 1000,
+//     });
 
-    await sendOtpEmail(email, otp);
+//     await sendOtpEmail(email, otp);
 
-    res.json({ message: "OTP sent" });
+//     res.json({ message: "OTP sent" });
 
-  } catch (err) {
-    console.error("OTP Error:", err);
-    res.status(500).json({
-      error: "Failed to send OTP"
-    });
-  }
-});
+//   } catch (err) {
+//     console.error("OTP Error:", err);
+//     res.status(500).json({
+//       error: "Failed to send OTP"
+//     });
+//   }
+// });
 
-router.post("/verify-otp", (req, res) => {
-  const { email, otp } = req.body;
+// router.post("/verify-otp", (req, res) => {
+//   const { email, otp } = req.body;
 
-  const stored = otpStore.get(email);
+//   const stored = otpStore.get(email);
 
-  if (!stored) {
-    return res.status(400).json({ error: "OTP not found" });
-  }
+//   if (!stored) {
+//     return res.status(400).json({ error: "OTP not found" });
+//   }
 
-  if (stored.expires < Date.now()) {
-    otpStore.delete(email);
-    return res.status(400).json({ error: "OTP expired" });
-  }
+//   if (stored.expires < Date.now()) {
+//     otpStore.delete(email);
+//     return res.status(400).json({ error: "OTP expired" });
+//   }
 
-  if (stored.otp !== otp) {
-    return res.status(400).json({ error: "Invalid OTP" });
-  }
+//   if (stored.otp !== otp) {
+//     return res.status(400).json({ error: "Invalid OTP" });
+//   }
 
-  otpStore.set(email, {
-    ...stored,
-    verified: true,
-  });
+//   otpStore.set(email, {
+//     ...stored,
+//     verified: true,
+//   });
 
 
-  res.json({ message: "Email verified" });
-});
+//   res.json({ message: "Email verified" });
+// });
 
 router.post("/login", async (req, res) => {
   try {
@@ -192,11 +189,11 @@ router.post("/login", async (req, res) => {
     }
 
     // -------- Check verification --------
-    if (user.verification_status !== "email_verified") {
-      return res.status(403).json({
-        error: "Email not verified",
-      });
-    }
+    // if (user.verification_status !== "email_verified") {
+    //   return res.status(403).json({
+    //     error: "Email not verified",
+    //   });
+    // }
 
     // -------- Create JWT --------
     const accessToken = jwt.sign(
@@ -292,8 +289,16 @@ router.post("/logout", async (req, res) => {
     [refreshToken]
   );
 
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
 
   res.json({ message: "Logged out" });
 });

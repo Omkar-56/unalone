@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Check, Shield } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API from '../api/axios';
+// import API from '../api/axios';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: registerUser } = useAuth();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -16,13 +16,13 @@ export default function RegisterPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  
+
   // Email verification states
-  const [verificationStep, setVerificationStep] = useState('form');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [timer, setTimer] = useState(0);
+  // const [verificationStep, setVerificationStep] = useState('form');
+  // const [otp, setOtp] = useState('');
+  // const [otpSent, setOtpSent] = useState(false);
+  // const [isVerified, setIsVerified] = useState(false);
+  // const [timer, setTimer] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -35,89 +35,89 @@ export default function RegisterPage() {
   };
 
   // Send OTP
-  const handleSendOTP = async () => {
-    if (!formData.email) {
-      setError('Please enter your email address');
-      return;
-    }
+  // const handleSendOTP = async () => {
+  //   if (!formData.email) {
+  //     setError('Please enter your email address');
+  //     return;
+  //   }
 
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const res = await API.post("/auth/send-otp", { email: formData.email });
-      console.log("OTP Sent:", res.data);
-      setOtpSent(true);
-      setVerificationStep('otp');
-      setSuccess('OTP sent to your email!');
-      setTimer(60);
-      
-      const interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   setIsLoading(true);
+  //   setError('');
+
+  //   try {
+  //     const res = await API.post("/auth/send-otp", { email: formData.email });
+  //     console.log("OTP Sent:", res.data);
+  //     setOtpSent(true);
+  //     setVerificationStep('otp');
+  //     setSuccess('OTP sent to your email!');
+  //     setTimer(60);
+
+  //     const interval = setInterval(() => {
+  //       setTimer((prev) => {
+  //         if (prev <= 1) {
+  //           clearInterval(interval);
+  //           return 0;
+  //         }
+  //         return prev - 1;
+  //       });
+  //     }, 1000);
+
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || 'Failed to send OTP');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // Verify OTP
-  const handleVerifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP');
-      return;
-    }
+  // const handleVerifyOTP = async () => {
+  //   if (!otp || otp.length !== 6) {
+  //     setError('Please enter a valid 6-digit OTP');
+  //     return;
+  //   }
 
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const res = await API.post("/auth/verify-otp", { 
-        email: formData.email, 
-        otp 
-      });
-      console.log("OTP Verified:", res.data);
-      setIsVerified(true);
-      setVerificationStep('verified');
-      setSuccess('Email verified successfully!');
-      
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid OTP');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   setIsLoading(true);
+  //   setError('');
+
+  //   try {
+  //     const res = await API.post("/auth/verify-otp", {
+  //       email: formData.email,
+  //       otp
+  //     });
+  //     console.log("OTP Verified:", res.data);
+  //     setIsVerified(true);
+  //     setVerificationStep('verified');
+  //     setSuccess('Email verified successfully!');
+
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || 'Invalid OTP');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // Submit registration
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!agreedToTerms) {
       setError('Please agree to the terms and conditions');
       return;
     }
 
-    if (!isVerified) {
-      setError('Please verify your email first');
-      return;
-    }
-    
+    // if (!isVerified) {
+    //   setError('Please verify your email first');
+    //   return;
+    // }
+
     setIsLoading(true);
     setError('');
-    
+
     const result = await registerUser(formData);
-    
+
     if (result.success) {
       setSuccess('Account created successfully! Redirecting...');
-      
+
       // Redirect to home/dashboard after successful registration
       setTimeout(() => {
         navigate('/');
@@ -125,7 +125,7 @@ export default function RegisterPage() {
     } else {
       setError(result.error);
     }
-    
+
     setIsLoading(false);
   };
 
@@ -155,7 +155,7 @@ export default function RegisterPage() {
 
         {/* Register Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8 border border-gray-100">
-          
+
           {/* Success Message */}
           {success && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  disabled={verificationStep === 'otp'}
+                  disabled={isLoading}
                   className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Full Name"
                 />
@@ -205,11 +205,11 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  disabled={otpSent}
-                  className="w-full pl-12 pr-32 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Email Address"
                 />
-                {!isVerified && (
+                {/* {!isVerified && (
                   <button
                     type="button"
                     onClick={handleSendOTP}
@@ -224,12 +224,12 @@ export default function RegisterPage() {
                     <Shield className="h-4 w-4 text-green-600" />
                     <span className="text-xs font-medium text-green-700">Verified</span>
                   </div>
-                )}
+                )}*/}
               </div>
             </div>
 
             {/* OTP Input Section */}
-            {verificationStep === 'otp' && !isVerified && (
+            {/* {verificationStep === 'otp' && !isVerified && (
               <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
                 <div className="flex items-center gap-2 mb-3">
                   <Mail className="h-5 w-5 text-indigo-600" />
@@ -265,7 +265,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
-            )}
+            )}*/}
 
             {/* Password Input */}
             <div>
@@ -280,7 +280,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  disabled={verificationStep === 'otp' && !isVerified}
+                  disabled={isLoading}
                   className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Password"
                 />
@@ -339,7 +339,7 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || !agreedToTerms || !isVerified}
+              disabled={isLoading || !agreedToTerms}
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-3.5 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
