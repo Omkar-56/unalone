@@ -2,7 +2,7 @@ import { MapPin, AlertCircle, Shield, X } from "lucide-react";
 import { CATEGORY_ICONS } from "../utils/constants";
 import { formatRelativeTime, spotsLeft } from "../utils/helpers";
 
-export default function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan }) {
+export default function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan, onDelete }) {
   if (!plan) return null;
   const Icon = CATEGORY_ICONS[plan.category] || MapPin;
   const free = spotsLeft(plan);
@@ -100,8 +100,9 @@ export default function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan }) {
           </button>
           {isOwnPlan ? (
             <button
+              onClick={() => onDelete(plan.id)}
               className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
-              Manage Plan
+              Delete Plan
             </button>
           ) : (
             <button onClick={() => onJoin(plan.id)} disabled={free === 0}

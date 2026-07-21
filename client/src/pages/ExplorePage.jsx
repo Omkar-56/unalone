@@ -319,6 +319,20 @@ export default function ExplorePage() {
     return true;
   });
 
+  const deletePlan = async (planId) => {
+    const confirmed = window.confirm('Are you sure you want to delete this plan?');
+    if (!confirmed) return;
+
+    try {
+      await API.delete(`/plans/${planId}`);
+      setPlans(plans.filter(p => String(p.id) !== planId));
+      setSelectedPlan(null);
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      alert(error.response?.data?.message || 'Failed to delete plan');
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
       <header className="flex-shrink-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 z-30 shadow-sm">
@@ -517,6 +531,7 @@ export default function ExplorePage() {
         onClose={() => setSelectedPlan(null)}
         onJoin={handleJoin}
         isOwnPlan={selectedPlan ? isOwnPlan(selectedPlan) : false}
+        onDelete={deletePlan}
       />
 
       {showCreateModal && createLocation && (
