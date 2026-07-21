@@ -70,12 +70,12 @@ export const deletePlan = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({
         message: "Plan not found"
-      });  
+      });
     }
 
     const plan = result.rows[0];
 
-    if (plan.creator_id !== userId) {
+    if (plan.user_id !== userId) {
       return res.status(403).json({
         message: "You are not authorized to delete this plan.",
       });
