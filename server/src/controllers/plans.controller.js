@@ -65,27 +65,13 @@ export const deletePlan = async (req, res) => {
     const planId = req.params.id;
     const userId = req.user.userId;
 
-    const result = await pool.query("SELECT id from plans WHERE user_id = $1", [userId]);
+    const result = await pool.query("DELETE FROM plans WHERE id = $1 AND user_id = $2 RETURNING id", [planId, userId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
-        message: "Plan not found"
+        message: "Plan not found or you are not authorized to delete it."
       });
     }
-
-    const plan = result.rows[0];
-
-    if (plan.user_id !== userId) {
-      return res.status(403).json({
-        message: "You are not authorized to delete this plan.",
-      });
-    }
-
-    await pool.query(
-      `DELETE FROM plans
-       WHERE id = $1`,
-      [planId]
-    );
 
     return res.status(200).json({
       message: "Plan deleted successfully.",
