@@ -1,4 +1,3 @@
-import React from 'react';
 import { LogOut, MapPin, Users, Bell, Map, Plus, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -21,18 +20,18 @@ export default function HomePage() {
               </div>
               <h1 className="text-xl font-bold text-gray-900">Unalone</h1>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <button className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
-              
+
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
-                
+
                 <button
                   onClick={logout}
                   className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
