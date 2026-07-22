@@ -85,3 +85,35 @@ export const deletePlan = async (req, res) => {
     });
   }
 };
+
+export const joinPlan = async (req, res) => {
+  try {
+    const planId = req.params.id;
+    const userId = req.user.userId;
+
+    await plansService.joinPlan(planId, userId);
+
+    return res.status(200).json({
+      message: "Joined plan successfully."
+    });
+
+  } catch (err) {
+    if (err.type === "not_found") {
+      return res.status(404).json({
+        message: err.message
+      });
+    }
+
+    if (err.type === "validation") {
+      return res.status(400).json({
+        message: err.message
+      });
+    }
+
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Internal server error."
+    });
+  }
+};
