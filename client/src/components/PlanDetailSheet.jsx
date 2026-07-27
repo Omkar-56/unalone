@@ -101,9 +101,16 @@ export default function PlanDetailSheet({ plan, onClose, onJoin, isOwnPlan, onDe
           {isOwnPlan ? (
             <button
               onClick={() => onDelete(plan.id)}
-              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+              className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
               Delete Plan
             </button>
+          ) : plan.hasJoined ? (
+            <button
+                disabled
+                className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Joined
+              </button>
           ) : (
             <button onClick={() => onJoin(plan.id)} disabled={free === 0}
               className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">

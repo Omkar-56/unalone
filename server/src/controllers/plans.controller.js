@@ -17,7 +17,8 @@ export const getNearbyPlans = async (req, res) => {
       lat: latNum,
       lng: lngNum,
       radius: radiusNum,
-      filter
+      filter,
+      userId: req.user?.userId
     });
 
     res.json({plans: plans});

@@ -1,6 +1,6 @@
 import pool from "../db/index.js";
 
-export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
+export const getNearbyPlans = async ({ lat, lng, radius, filter, userId }) => {
   let timeFilter = "";
   if (filter === "today") {
     timeFilter = "AND p.time < NOW() + INTERVAL '24 hours'";
@@ -24,6 +24,11 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
 
       COUNT(pp.user_id) AS participants,
 
+      CASE
+        WHEN me.user_id IS NULL THEN false
+        ELSE true
+      END AS has_joined,
+
       ST_Y(p.location::geometry) AS lat,
       ST_X(p.location::geometry) AS lng,
 
@@ -39,6 +44,10 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
 
     LEFT JOIN plan_participants pp
       ON pp.plan_id = p.id
+
+    LEFT JOIN plan_participants me
+      ON me.plan_id = p.id
+      AND me.user_id = $4
 
     WHERE ST_DWithin(
       p.location,
@@ -66,7 +75,7 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
     LIMIT 50;
   `;
 
-  const { rows } = await pool.query(query, [lat, lng, radius]);
+  const { rows } = await pool.query(query, [lat, lng, radius, userId]);
 
   return rows.map(p => ({
     id: p.id,
@@ -90,7 +99,8 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter }) => {
         .split(" ")
         .map(n => n[0])
         .join("")
-    }
+    },
+    hasJoined: p.has_joined,
   }));
 };
 
