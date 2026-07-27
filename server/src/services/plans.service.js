@@ -298,3 +298,15 @@ export const joinPlan = async (planId, userId) => {
     throw err;
   }
 };
+
+export const deleteExpiredPlans = async () => {
+  const result = await pool.query(
+    `
+    DELETE FROM plans
+    WHERE time < NOW() - INTERVAL '1 hour'
+    RETURNING id
+    `
+  );
+
+  return result.rows;
+};

@@ -5,6 +5,7 @@ import pool from "./db/index.js";
 import authRoutes from "./routes/auth.js";
 import cookieParser from "cookie-parser";
 import planRoutes from "./routes/plans.routes.js"
+import "./jobs/delExpPlans.js"
 
 dotenv.config();
 
