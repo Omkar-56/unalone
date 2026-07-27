@@ -24,10 +24,7 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter, userId }) => {
 
       COUNT(pp.user_id) AS participants,
 
-      CASE
-        WHEN me.user_id IS NULL THEN false
-        ELSE true
-      END AS has_joined,
+      COUNT(me.user_id) > 0 AS has_joined,
 
       ST_Y(p.location::geometry) AS lat,
       ST_X(p.location::geometry) AS lng,
