@@ -50,18 +50,18 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await API.post('/auth/login', { email, password });
-      
+
       // Token is automatically stored in HTTP-only cookie by backend
       // We just store user info in state and localStorage
       setUser(response.data.user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       return { success: true, data: response.data };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed'
       };
     }
   };
@@ -69,17 +69,17 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await API.post('/auth/register', userData);
-      
+
       // Token is automatically stored in HTTP-only cookie by backend
       setUser(response.data.user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       return { success: true, data: response.data };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Registration failed'
       };
     }
   };
