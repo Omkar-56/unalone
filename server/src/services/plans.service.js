@@ -24,7 +24,12 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter, userId }) => {
 
       COUNT(pp.user_id) AS participants,
 
-      COUNT(me.user_id) > 0 AS has_joined,
+      EXISTS (
+        SELECT 1
+        FROM plan_participants p2
+        WHERE p2.plan_id = p.id
+          AND p2.user_id = $4
+      ) AS has_joined,
 
       ST_Y(p.location::geometry) AS lat,
       ST_X(p.location::geometry) AS lng,
@@ -41,10 +46,6 @@ export const getNearbyPlans = async ({ lat, lng, radius, filter, userId }) => {
 
     LEFT JOIN plan_participants pp
       ON pp.plan_id = p.id
-
-    LEFT JOIN plan_participants me
-      ON me.plan_id = p.id
-      AND me.user_id = $4
 
     WHERE ST_DWithin(
       p.location,
