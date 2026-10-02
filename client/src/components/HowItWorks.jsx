@@ -50,7 +50,6 @@ export default function HowItWorks() {
         <div className="space-y-12">
           {steps.map((step, index) => {
             const Icon = step.icon;
-            const isEven = index % 2 === 0;
 
             return (
               <div key={index} className="flex items-center gap-8 md:gap-12">
@@ -83,11 +82,6 @@ export default function HowItWorks() {
                     ))}
                   </div>
                 </div>
-
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-1 h-24 bg-gradient-to-b from-blue-400 to-transparent" />
-                )}
               </div>
             );
           })}

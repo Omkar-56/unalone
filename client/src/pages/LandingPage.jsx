@@ -2,8 +2,7 @@ import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import HowItWorks from '../components/HowItWorks';
-// import Screenshots from '../components/Screenshots';
-// import CallToAction from '../components/CallToAction';
+import Screenshots from '../components/Screenshots';
 import Footer from '../components/Footer';
 
 export default function LandingPage() {
@@ -13,7 +12,7 @@ export default function LandingPage() {
       <Navigation />
 
       {/* Main Content - Add top padding for fixed nav */}
-      <main className="pt-16">
+      <main className="pt-4">
         {/* Hero Section */}
         <Hero />
 
@@ -24,10 +23,7 @@ export default function LandingPage() {
         <HowItWorks />
 
         {/* Screenshots/Demo Section */}
-        {/* <Screenshots />*/}
-
-        {/* Call to Action & Social Proof */}
-        {/* <CallToAction />*/}
+        <Screenshots />
       </main>
 
       {/* Footer */}
