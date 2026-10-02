@@ -1,153 +1,70 @@
 # Unalone
 
-A location-based social platform that helps people discover, create, and join activities happening nearby. Unalone enables users to organize real-world meetups, explore events on an interactive map, and connect with people who share similar interests.
+> **Meet People Near You, Right Now.**  
+> A location-based social web application for discovering and organizing spontaneous real-world meetups.
 
-**Live Demo:** https://unalone-flax.vercel.app/
+**Live Demo:** [https://unalone-flax.vercel.app/](https://unalone-flax.vercel.app/)
 
 ---
 
 ## Overview
 
-Finding people to participate in activities can often be difficult, especially when you're new to an area or your friends are unavailable. Unalone aims to solve this by allowing users to create public plans that nearby users can discover and request to join.
-
-The platform combines geospatial search, interactive maps, and secure authentication to provide a seamless experience for discovering local activities.
+**Unalone** helps people connect locally for spontaneous activities—from grabbing coffee and working together at a cafe to outdoor runs, dinners, and hangouts. Powered by interactive maps and geospatial queries, users can see what is happening nearby in real time, create their own plans, and join others.
 
 ---
 
 ## Features
 
-### Authentication
-
-* User registration
-* User login
-* JWT-based authentication
-* HTTP-only cookie authentication
-* Protected routes
-* Persistent user sessions
-* Secure logout
-
----
-
-### Explore Nearby Plans
-
-* Interactive Mapbox map
-* Radius-based nearby search
-* Distance calculation using PostGIS
-* Filter plans by:
-
-  * All
-  * Today
-  * Soon
-* Responsive sidebar and mobile bottom sheet
-* View detailed information about each plan
-
----
-
-### Create Plans
-
-Users can create plans by providing:
-
-* Title
-* Description
-* Category
-* Date & Time
-* Maximum participants
-* Location selected directly on the map
-
-Every plan stores geographic coordinates and becomes discoverable to nearby users.
-
----
-
-### Join Plans
-
-* Request to join a plan
-* Prevent users from joining their own plans
-* Authentication required
-* Request status management
-
----
-
-### Delete Plans
-
-* Only authenticated users can delete plans
-* Server-side ownership verification
-* Delete option visible only to the plan creator
-* Automatic UI updates after deletion
-
----
-
-### Geospatial Search
-
-Powered by PostgreSQL + PostGIS.
-
-Features include:
-
-* Radius-based plan discovery
-* Geographic distance calculations
-* Location indexing
-* Efficient nearby search queries
-
----
-
-### Responsive Design
-
-Optimized for both desktop and mobile devices.
+- **Interactive Map Exploration**: Discover nearby meetups on a dynamic Mapbox-powered map centered on your live location.
+- **Spontaneous Plan Creation**: Create a plan in seconds with custom titles, descriptions, categories, participant limits, and meet times.
+- **Geospatial Discovery**: High-performance proximity search powered by PostgreSQL and PostGIS to find events within your radius.
+- **Join Meetups**: View open spots, check who's attending, and join plans with one click.
+- **Smart Filtering**: Filter meetups by category (Coffee, Food, Sports, Study, Hangout, etc.) or time (Happening soon / Today).
+- **Secure Authentication**: Token-based authentication using JSON Web Tokens (JWT) stored in secure HTTP-only cookies, password hashing with bcrypt, and Zod input validation.
+- **Automatic Cleanup**: Built-in background cron job removes expired plans automatically every 10 minutes.
 
 ---
 
 ## Tech Stack
 
-### Frontend
+### Frontend (`/client`)
+- **Framework**: React 19 + Vite
+- **Styling**: Tailwind CSS
+- **Maps**: Mapbox GL JS
+- **Icons**: Lucide React
+- **Routing & Networking**: React Router 7, Axios
 
-* React.js
-* Vite
-* Tailwind CSS
-* Axios
-* React Router
-* Mapbox GL JS
-
-### Backend
-
-* Node.js
-* Express.js
-* JWT Authentication
-* REST APIs
-
-### Database
-
-* PostgreSQL
-* PostGIS
-
-### Deployment
-
-* Frontend: Vercel
-* Backend: Render
+### Backend (`/server`)
+- **Runtime & Framework**: Node.js, Express 5
+- **Database**: PostgreSQL with PostGIS extension
+- **Auth & Security**: JWT, bcrypt, cookie-parser
+- **Validation**: Zod
+- **Scheduled Tasks**: node-cron
 
 ---
 
 ## Project Structure
 
 ```text
-Unalone/
-│
-├── client/
+unalone/
+├── client/                 # Frontend React application
 │   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── utils/
+│   │   ├── api/            # Axios API client setup
+│   │   ├── components/     # UI components (MapView, PlanCard, Modals, etc.)
+│   │   ├── context/        # Auth & Location context providers
+│   │   ├── pages/          # Landing, Home, Explore, Login, Register pages
+│   │   └── utils/          # Helpers, constants, and Mapbox config
 │   └── package.json
 │
-├── server/
+├── server/                 # Backend Node.js / Express API
 │   ├── src/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── validators/
-│   │   └── db/
+│   │   ├── controllers/    # Request handlers (plans, etc.)
+│   │   ├── db/             # PostgreSQL connection pool
+│   │   ├── jobs/           # Scheduled background cron jobs
+│   │   ├── middleware/     # Auth & token verification middleware
+│   │   ├── routes/         # Express routes (auth, plans)
+│   │   ├── services/       # Database & business logic
+│   │   └── validators/     # Zod request validation schemas
 │   └── package.json
 │
 └── README.md
@@ -155,170 +72,78 @@ Unalone/
 
 ---
 
-## Database
-
-The application currently uses PostgreSQL with PostGIS and includes entities such as:
-
-* Users
-* Plans
-* Refresh Tokens
-* Join Requests
-
----
-
-## Security
-
-* JWT authentication
-* HTTP-only cookies
-* Protected API endpointsx
-* Server-side authorization
-* Ownership verification before deleting plans
-* Input validation
-
----
-
-<!--## Screenshots
-
-### Login
-
-*Add screenshot here*
-
----
-
-### Explore Plans
-
-*Add screenshot here*
-
----
-
-### Plan Details
-
-*Add screenshot here*
-
----
-
-### Create Plan
-
-*Add screenshot here*
-
----
-
-### Interactive Map
-
-*Add screenshot here*
-
------>
-
 ## Getting Started
 
-### Clone the repository
-
-```bash
-git clone https://github.com/Omkar-56/unalone.git
-cd unalone
-```
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18+)
+- [PostgreSQL](https://www.postgresql.org/) database with **PostGIS** extension enabled
+- [Mapbox](https://www.mapbox.com/) public access token
 
 ---
 
-### Install dependencies
+### 1. Backend Setup
 
-#### Client
+1. Open a terminal and navigate to `server`:
+   ```bash
+   cd server
+   npm install
+   ```
 
-```bash
-cd client
-npm install
-```
+2. Create a `.env` file in `server/`:
+   ```env
+   PORT=5000
+   DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<dbname>
+   JWT_SECRET=your_jwt_secret_key
+   ```
 
-#### Server
+3. Start the server:
+   ```bash
+   # Development (with nodemon)
+   npm run dev
 
-```bash
-cd server
-npm install
-```
-
----
-
-### Environment Variables
-
-#### Client
-
-```env
-VITE_API_URL=
-VITE_MAPBOX_TOKEN=
-```
-
-#### Server
-
-```env
-DATABASE_URL=
-JWT_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-CLIENT_URL=
-```
+   # Production
+   npm start
+   ```
 
 ---
 
-### Run the application
+### 2. Frontend Setup
 
-#### Backend
+1. Open a new terminal and navigate to `client`:
+   ```bash
+   cd client
+   npm install
+   ```
 
-```bash
-npm run dev
-```
+2. Create a `.env` file in `client/`:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   VITE_MAPBOX_TOKEN=your_mapbox_public_token
+   ```
 
-#### Frontend
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-```
-
----
-
-## Future Improvements
-
-The following features are planned for future releases:
-
-* Real-time notifications
-* WebSocket integration
-* Automatic deletion of expired plans
-* Real-time participant updates
-* In-app chat
-* Push notifications
-* User profiles
-* Activity history
-* Search by interests and categories
+4. Open `http://localhost:5173` in your browser.
 
 ---
 
-## Learning Outcomes
+## API Overview
 
-This project provided hands-on experience with:
-
-* Full-stack application development
-* JWT authentication
-* REST API design
-* PostgreSQL and PostGIS
-* Geospatial database queries
-* Interactive maps using Mapbox
-* Responsive UI development
-* Secure route protection
-* Deployment using Vercel and Render
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user | No |
+| `POST` | `/api/auth/login` | Log in and receive JWT cookies | No |
+| `POST` | `/api/auth/logout` | Log out and clear cookies | No |
+| `GET` | `/api/plans/nearby` | Fetch plans within radius (`lat`, `lng`, `radius`) | Yes |
+| `POST` | `/api/plans/create` | Create a new meetup plan | Yes |
+| `DELETE` | `/api/plans/:id` | Delete a plan created by user | Yes |
+| `POST` | `/api/plans/:id/join` | Join or participate in a plan | Yes |
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
-
----
-
-## Author
-
-**Omkar Pansare**
-
-GitHub: https://github.com/Omkar-56
-
-LinkedIn: https://www.linkedin.com/in/omkar-pansare-3b8a91292/
-
-portfolio: https://omkar-pansare.vercel.app/
+This project is licensed under the [ISC License](LICENSE).
