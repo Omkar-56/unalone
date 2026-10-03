@@ -1,11 +1,23 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Search, X, Navigation, MapPin, Plus, SlidersHorizontal, Loader2, Map, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Search,
+  X,
+  Navigation,
+  MapPin,
+  Plus,
+  SlidersHorizontal,
+  Loader2,
+  Map,
+  LogOut,
+  LayoutDashboard,
+} from 'lucide-react';
 
 import { useLocation } from '../context/LocationContext';
 import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
 
-import { MAPBOX_TOKEN, FILTERS, } from '../utils/constants';
+import { MAPBOX_TOKEN, FILTERS } from '../utils/constants';
 import { spotsLeft } from '../utils/helpers';
 
 import PlanDetailSheet from '../components/PlanDetailSheet';
@@ -13,7 +25,7 @@ import CreatePlanForm from '../components/CreatePlanForm';
 import CreatePlanModal from '../components/CreatePlanModal';
 import PlanCard from '../components/PlanCard';
 
-// ─── Main ──────────────────────────────────────────────────────
+// ─── Main ──────────────────────────────────────────────────────────
 export default function ExplorePage() {
   const mapContainerRef = useRef(null);
   const mapRef          = useRef(null);
@@ -21,7 +33,8 @@ export default function ExplorePage() {
   const userMarkerRef   = useRef(null);
 
   const { userLocation, isLoadingLocation, locationError, requestLocation, setManualLocation } = useLocation();
-  const { user, logout } = useAuth(); // ← Get current user
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [plans,         setPlans]         = useState([]);
   const [selectedPlan,  setSelectedPlan]  = useState(null);
@@ -42,14 +55,7 @@ export default function ExplorePage() {
 
   // Helper function to check if plan belongs to current user
   const isOwnPlan = (plan) => {
-    console.log("Current User:", user);
-    console.log("Plan:", plan);
-    console.log("Creator:", plan.creator);
-    console.log("Creator ID:", plan.creator?.id);
-    console.log("Creator_id:", plan.creator_id);
-
     if (!user || !plan?.creator?.id) return false;
-
     return plan.creator.id === user.id;
   };
 
@@ -336,8 +342,12 @@ export default function ExplorePage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
       <header className="flex-shrink-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 z-30 shadow-sm">
-        <div className="flex items-center gap-2.5 mr-1">
-          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+        <div
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-2.5 mr-1 cursor-pointer group"
+          title="Back to Dashboard"
+        >
+          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
             <Map size={16} className="text-white" />
           </div>
           <span className="font-bold text-gray-900 hidden sm:block tracking-tight">Unalone</span>
@@ -374,6 +384,13 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
+          <button
+            onClick={() => navigate('/home')}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            <LayoutDashboard size={14} /><span className="hidden md:inline">Dashboard</span>
+          </button>
+
           <button onClick={() => setShowList(v => !v)}
             className="sm:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
             <SlidersHorizontal size={14} />List
