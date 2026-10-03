@@ -118,3 +118,46 @@ export const joinPlan = async (req, res) => {
     });
   }
 };
+
+export const leavePlan = async (req, res) => {
+  try {
+    const planId = req.params.id;
+    const userId = req.user.userId;
+
+    await plansService.leavePlan(planId, userId);
+
+    return res.status(200).json({
+      message: "Left plan successfully."
+    });
+
+  } catch (err) {
+    if (err.type === "not_found") {
+      return res.status(404).json({
+        message: err.message
+      });
+    }
+
+    if (err.type === "validation") {
+      return res.status(400).json({
+        message: err.message
+      });
+    }
+
+    console.error("Leave plan error:", err);
+
+    return res.status(500).json({
+      message: "Internal server error."
+    });
+  }
+};
+
+export const getUserDashboard = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const data = await plansService.getUserDashboard(userId);
+    res.json(data);
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

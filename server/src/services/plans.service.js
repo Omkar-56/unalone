@@ -307,6 +307,151 @@ export const joinPlan = async (planId, userId) => {
   }
 };
 
+export const leavePlan = async (planId, userId) => {
+  // Check if owner is trying to leave their own plan
+  const planRes = await pool.query("SELECT user_id FROM plans WHERE id = $1", [planId]);
+  if (planRes.rows.length === 0) {
+    throw { type: "not_found", message: "Plan not found." };
+  }
+  if (planRes.rows[0].user_id === userId) {
+    throw { type: "validation", message: "Plan creators cannot leave their own plan. Delete it instead." };
+  }
+
+  const result = await pool.query(
+    "DELETE FROM plan_participants WHERE plan_id = $1 AND user_id = $2 RETURNING *",
+    [planId, userId]
+  );
+
+  if (result.rows.length === 0) {
+    throw { type: "validation", message: "You are not a participant in this plan." };
+  }
+
+  return { success: true };
+};
+
+export const getUserDashboard = async (userId) => {
+  // 1. My created plans
+  const createdQuery = `
+    SELECT
+      p.id,
+      p.user_id,
+      p.title,
+      p.description,
+      p.category,
+      p.location_name,
+      p.time,
+      p.max_people,
+      p.created_at,
+      COUNT(pp.user_id) AS participants,
+      ST_Y(p.location::geometry) AS lat,
+      ST_X(p.location::geometry) AS lng,
+      CASE WHEN p.time >= NOW() THEN 'upcoming' ELSE 'past' END AS status
+    FROM plans p
+    LEFT JOIN plan_participants pp ON pp.plan_id = p.id
+    WHERE p.user_id = $1
+    GROUP BY p.id, p.location
+    ORDER BY p.time DESC
+  `;
+
+  // 2. My joined plans (where user is participant, but not creator)
+  const joinedQuery = `
+    SELECT
+      p.id,
+      p.user_id AS creator_id,
+      p.title,
+      p.description,
+      p.category,
+      p.location_name,
+      p.time,
+      p.max_people,
+      p.created_at,
+      u.name AS creator_name,
+      u.verification_status,
+      (SELECT COUNT(*) FROM plan_participants pp2 WHERE pp2.plan_id = p.id) AS participants,
+      ST_Y(p.location::geometry) AS lat,
+      ST_X(p.location::geometry) AS lng,
+      CASE WHEN p.time >= NOW() THEN 'upcoming' ELSE 'past' END AS status
+    FROM plans p
+    JOIN plan_participants pp ON pp.plan_id = p.id AND pp.user_id = $1
+    JOIN users u ON u.id = p.user_id
+    WHERE p.user_id != $1
+    ORDER BY p.time DESC
+  `;
+
+  // 3. Total unique connections
+  const connectionsQuery = `
+    SELECT COUNT(DISTINCT pp2.user_id) AS total_connections
+    FROM plan_participants pp1
+    JOIN plan_participants pp2 ON pp1.plan_id = pp2.plan_id
+    WHERE pp1.user_id = $1 AND pp2.user_id != $1
+  `;
+
+  const [createdRes, joinedRes, connRes] = await Promise.all([
+    pool.query(createdQuery, [userId]),
+    pool.query(joinedQuery, [userId]),
+    pool.query(connectionsQuery, [userId]),
+  ]);
+
+  const createdPlans = createdRes.rows.map(p => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    category: p.category,
+    location: {
+      lat: p.lat,
+      lng: p.lng,
+      placeName: p.location_name,
+    },
+    datetime: p.time,
+    createdAt: p.created_at,
+    participants: Number(p.participants),
+    maxParticipants: Number(p.max_people),
+    status: p.status,
+    isOwner: true,
+  }));
+
+  const joinedPlans = joinedRes.rows.map(p => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    category: p.category,
+    location: {
+      lat: p.lat,
+      lng: p.lng,
+      placeName: p.location_name,
+    },
+    datetime: p.time,
+    createdAt: p.created_at,
+    participants: Number(p.participants),
+    maxParticipants: Number(p.max_people),
+    status: p.status,
+    isOwner: false,
+    creator: {
+      id: p.creator_id,
+      name: p.creator_name,
+      verified: p.verification_status === 'email_verified',
+      initials: p.creator_name
+        ? p.creator_name.split(" ").map(n => n[0]).join("")
+        : "U",
+    },
+  }));
+
+  const activeCreated = createdPlans.filter(p => p.status === 'upcoming').length;
+  const activeJoined = joinedPlans.filter(p => p.status === 'upcoming').length;
+  const totalConnections = Number(connRes.rows[0]?.total_connections || 0);
+
+  return {
+    stats: {
+      activeCreated,
+      activeJoined,
+      totalPlans: createdPlans.length + joinedPlans.length,
+      connections: totalConnections,
+    },
+    createdPlans,
+    joinedPlans,
+  };
+};
+
 export const deleteExpiredPlans = async () => {
   const result = await pool.query(
     `
