@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { MapPin, X, Loader2 } from "lucide-react";
+import { MapPin, X, Loader2, Sparkles } from "lucide-react";
 import { CATEGORIES } from "../utils/constants";
 
 export default function CreatePlanModal({ location, onClose, onSubmit, isSubmitting }) {
   const [formData, setFormData] = useState({
-    title: '',
-    category: 'coffee',
+    title: location?.suggestedTitle || (location?.placeName ? `Meetup at ${location.placeName}` : ''),
+    category: location?.suggestedCategory || 'coffee',
     datetime: '',
     maxParticipants: 4,
     description: '',
@@ -14,8 +14,13 @@ export default function CreatePlanModal({ location, onClose, onSubmit, isSubmitt
   useEffect(() => {
     const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
     const formatted = oneHourLater.toISOString().slice(0, 16);
-    setFormData(prev => ({ ...prev, datetime: formatted }));
-  }, []);
+    setFormData(prev => ({
+      ...prev,
+      datetime: formatted,
+      category: location?.suggestedCategory || prev.category || 'coffee',
+      title: location?.suggestedTitle || prev.title || (location?.placeName ? `Meetup at ${location.placeName}` : ''),
+    }));
+  }, [location]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,9 +28,9 @@ export default function CreatePlanModal({ location, onClose, onSubmit, isSubmitt
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-lg sm:mx-4 sm:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="sm:hidden flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
         </div>
@@ -33,129 +38,157 @@ export default function CreatePlanModal({ location, onClose, onSubmit, isSubmitt
         <div className="px-6 pt-4 pb-5 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <MapPin size={20} className="text-blue-600" />
+              <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                <MapPin size={20} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Create a Plan</h2>
-                <p className="text-xs text-gray-500">Quick meetup at this location</p>
+                <h2 className="text-lg font-bold text-gray-900">Host a Meetup</h2>
+                <p className="text-xs text-gray-500">Pick details for your spontaneous plan</p>
               </div>
             </div>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            >
               <X size={16} className="text-gray-500" />
             </button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          {/* Venue Card Badge */}
+          {location?.placeName && (
+            <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-100 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
+                <MapPin size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-white px-1.5 py-0.2 rounded border border-blue-200">
+                    Selected Venue
+                  </span>
+                  {location.isSuggestedVenue && (
+                    <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-1">
+                      <Sparkles size={11} /> Suggested Spot
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-bold text-gray-900 truncate mt-0.5">{location.placeName}</p>
+                <p className="text-[11px] text-gray-500 truncate">
+                  {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Plan Title</label>
+            <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5 tracking-wider">
+              Meetup Title
+            </label>
             <input
               type="text"
               required
               maxLength={50}
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Morning Coffee Chat"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
+              placeholder="e.g., Morning Coffee & Co-work"
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm text-gray-900 placeholder-gray-400 font-medium"
             />
-            <p className="text-xs text-gray-400 mt-1">{formData.title.length}/50</p>
+            <p className="text-[11px] text-gray-400 mt-1">{formData.title.length}/50</p>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+            <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5 tracking-wider">
+              Category
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon;
+                const isSelected = formData.category === cat.id;
                 return (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.id })}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      formData.category === cat.id ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                    className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all ${
+                      isSelected
+                        ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                     }`}
                   >
-                    <Icon size={20} className={formData.category === cat.id ? 'text-blue-600' : 'text-gray-500'} />
-                    <span className={`text-xs font-medium ${formData.category === cat.id ? 'text-blue-900' : 'text-gray-700'}`}>{cat.label}</span>
+                    <Icon size={18} className={isSelected ? 'text-white' : 'text-slate-600'} />
+                    <span className="text-xs font-semibold">{cat.label}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">When</label>
-            <input
-              type="datetime-local"
-              required
-              value={formData.datetime}
-              onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Max Participants</label>
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5 tracking-wider">
+                When
+              </label>
               <input
-                type="range"
-                min="2"
-                max="20"
-                value={formData.maxParticipants}
-                onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                type="datetime-local"
+                required
+                value={formData.datetime}
+                onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-xs sm:text-sm text-gray-900"
               />
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                <span className="text-lg font-bold text-blue-600">{formData.maxParticipants}</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5 tracking-wider">
+                Max Capacity: <span className="text-blue-600">{formData.maxParticipants} people</span>
+              </label>
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="range"
+                  min="2"
+                  max="15"
+                  value={formData.maxParticipants}
+                  onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
+            <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5 tracking-wider">
+              Description (Optional)
+            </label>
             <textarea
               maxLength={200}
-              rows={3}
+              rows={2}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Add any details about the meetup..."
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 resize-none"
+              placeholder="What are the plans? e.g., Bringing laptop, open to chats..."
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-xs sm:text-sm text-gray-900 placeholder-gray-400 resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1">{formData.description.length}/200</p>
           </div>
 
-          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-            <div className="flex items-start gap-2">
-              <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-700">Location</p>
-                <p className="text-xs text-gray-900 font-medium truncate">{location.placeName}</p>
-                <p className="text-xs text-gray-400 truncate">{location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !formData.title}
-              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Creating...
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Publishing...</span>
                 </>
               ) : (
-                'Create Plan'
+                'Publish Meetup'
               )}
             </button>
           </div>
