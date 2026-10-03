@@ -12,7 +12,7 @@ export default function LandingPage() {
       <Navigation />
 
       {/* Main Content - Add top padding for fixed nav */}
-      <main className="pt-4">
+      <main className="pt-16">
         {/* Hero Section */}
         <Hero />
 

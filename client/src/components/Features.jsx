@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Users, Zap, Shield, MessageCircle, Trash } from 'lucide-react';
+import { MapPin, Clock, Users, Zap, Shield, Trash } from 'lucide-react';
 
 export default function Features() {
   const features = [
@@ -42,29 +42,29 @@ export default function Features() {
   ];
 
   const colorClasses = {
-    blue: { bg: 'bg-blue-50', icon: 'text-blue-600', border: 'border-blue-200' },
-    purple: { bg: 'bg-purple-50', icon: 'text-purple-600', border: 'border-purple-200' },
-    green: { bg: 'bg-green-50', icon: 'text-green-600', border: 'border-green-200' },
-    amber: { bg: 'bg-amber-50', icon: 'text-amber-600', border: 'border-amber-200' },
-    red: { bg: 'bg-red-50', icon: 'text-red-600', border: 'border-red-200' },
-    cyan: { bg: 'bg-cyan-50', icon: 'text-cyan-600', border: 'border-cyan-200' },
+    blue: { bg: 'bg-blue-50/70', icon: 'text-blue-600', border: 'border-blue-200' },
+    purple: { bg: 'bg-purple-50/70', icon: 'text-purple-600', border: 'border-purple-200' },
+    green: { bg: 'bg-green-50/70', icon: 'text-green-600', border: 'border-green-200' },
+    amber: { bg: 'bg-amber-50/70', icon: 'text-amber-600', border: 'border-amber-200' },
+    red: { bg: 'bg-red-50/70', icon: 'text-red-600', border: 'border-red-200' },
+    cyan: { bg: 'bg-cyan-50/70', icon: 'text-cyan-600', border: 'border-cyan-200' },
   };
 
   return (
-    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section id="features" className="py-12 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white scroll-mt-16">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 sm:mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
             Everything You Need
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
             Powerful features designed to help you discover and create meaningful local connections.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             const colors = colorClasses[feature.color];
@@ -72,13 +72,13 @@ export default function Features() {
             return (
               <div
                 key={index}
-                className={`p-8 rounded-2xl border ${colors.border} ${colors.bg} hover:shadow-lg transition-shadow group`}
+                className={`p-5 rounded-xl border ${colors.border} ${colors.bg} hover:shadow-md transition-shadow group`}
               >
-                <div className="mb-4 inline-flex p-3 rounded-xl bg-white">
-                  <Icon size={24} className={`${colors.icon} group-hover:scale-110 transition-transform`} />
+                <div className="mb-3 inline-flex p-2.5 rounded-lg bg-white shadow-xs">
+                  <Icon size={20} className={`${colors.icon} group-hover:scale-110 transition-transform`} />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-base font-bold text-gray-900 mb-1">{feature.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
             );
           })}

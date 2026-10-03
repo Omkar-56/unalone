@@ -1,31 +1,34 @@
 import React from 'react';
-import { MapPin, Plus, Users, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Plus, Users, MessageCircle, ArrowRight } from 'lucide-react';
 
 export default function HowItWorks() {
+  const navigate = useNavigate();
+
   const steps = [
     {
-      number: 1,
+      number: '01',
       icon: MapPin,
       title: 'Find Your Location',
       description: 'Enable location access to see all the exciting plans happening around you right now.',
       details: ['Real-time location', 'Adjustable radius', 'Privacy control'],
     },
     {
-      number: 2,
+      number: '02',
       icon: Plus,
       title: 'Create or Join',
       description: 'Either create your own plan by clicking on the map or join existing plans with a simple request.',
-      details: ['Quick map creation', 'Detailed form option', 'Instant join requests'],
+      details: ['Quick map creation', 'Detailed form', 'Instant join requests'],
     },
     {
-      number: 3,
+      number: '03',
       icon: Users,
       title: 'Get Approved',
       description: 'Creators review your request and can accept or decline based on their preferences.',
-      details: ['Real-time notifications', 'No spam bots', 'Verified users only'],
+      details: ['Live notifications', 'No spam bots', 'Verified users only'],
     },
     {
-      number: 4,
+      number: '04',
       icon: MessageCircle,
       title: 'Connect & Enjoy',
       description: 'Once accepted, unlock the group chat and start coordinating details with your new friends.',
@@ -34,67 +37,79 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
+    <section id="how-it-works" className="py-12 sm:py-14 lg:py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 scroll-mt-16">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 sm:mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
             How It Works
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
             Four simple steps to find and create amazing local experiences.
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="space-y-12">
+        {/* 4 Steps in a single horizontal row on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {steps.map((step, index) => {
             const Icon = step.icon;
 
             return (
-              <div key={index} className="flex items-center gap-8 md:gap-12">
-                {/* Left - Step Number and Icon */}
-                <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-slate-600 rounded-2xl opacity-10 blur-xl" />
-                  <div className="relative w-full h-full bg-white rounded-2xl border-2 border-slate-200 flex flex-col items-center justify-center shadow-lg">
-                    <p className="text-3xl md:text-4xl font-bold text-slate-900">{step.number}</p>
-                    <Icon size={24} className="text-slate-600 mt-1" />
+              <div
+                key={index}
+                className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+              >
+                <div>
+                  {/* Top Bar with Number and Icon */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">
+                      {step.number}
+                    </span>
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                      <Icon size={20} />
+                    </div>
                   </div>
-                </div>
 
-                {/* Right - Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-base font-bold text-gray-900 mb-1.5">
                     {step.title}
                   </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed mb-4">
+
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-4">
                     {step.description}
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {step.details.map((detail, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-200"
-                      >
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
-                        {detail}
-                      </span>
-                    ))}
-                  </div>
+                </div>
+
+                {/* Details Badges */}
+                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
+                  {step.details.map((detail, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-700 text-[11px] font-medium rounded-md border border-slate-200"
+                    >
+                      <span className="w-1 h-1 bg-blue-600 rounded-full" />
+                      {detail}
+                    </span>
+                  ))}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* CTA */}
-        <div className="mt-16 p-8 bg-gradient-to-r from-blue-600 to-slate-700 rounded-2xl text-white text-center">
-          <h3 className="text-2xl font-bold mb-4">Ready to Start Meeting People?</h3>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-            Join thousands of users discovering genuine local connections and amazing meetups.
-          </p>
-          <button className="px-8 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+        {/* Compact CTA Banner */}
+        <div className="mt-8 sm:mt-10 p-5 sm:p-6 bg-gradient-to-r from-blue-600 to-slate-800 rounded-xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-md">
+          <div>
+            <h3 className="text-base sm:text-lg font-bold mb-1">Ready to Start Meeting People?</h3>
+            <p className="text-xs sm:text-sm text-blue-100 max-w-xl">
+              Join thousands of users discovering genuine local connections and spontaneous meetups.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/register')}
+            className="flex-shrink-0 px-5 py-2.5 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-xs sm:text-sm flex items-center gap-1.5 shadow-sm"
+          >
             Get Started Now
+            <ArrowRight size={14} />
           </button>
         </div>
       </div>
